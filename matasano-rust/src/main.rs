@@ -1,9 +1,11 @@
 extern crate rustc_serialize as serialize;
+extern crate num;
 
 use serialize::base64::{self, ToBase64};
 use serialize::hex::FromHex;
 use std::str;
 
+use std::collections::HashMap;
 /// S1;C1
 fn hexToBase64(hexStr: &str) -> Result<String, serialize::hex::FromHexError> {
 	hexStr.from_hex().map(|s| s.to_base64(base64::STANDARD))
@@ -27,19 +29,38 @@ fn singleCharXOR(hexStr: &str) -> u8 {
 	let mut secret = Vec::with_capacity(len);
 	unsafe { secret.set_len(len);}
 
-	let (score, ch) = (0..255).map(|c| {
+	let (score, ch, str) = (0..255).map(|c| {
 		for i in 0..len {secret[i] = c;}
 		let plain = fixedXOR(&bs, &secret);
 
-		str::from_utf8(&plain).map(|str| (englishScore(str), c))
+		str::from_utf8(&plain).map(|str| (englishScore(str), c, str.to_string().clone()))
 	}).filter_map(resultToOpt)
 		.max().unwrap();
+
+	println!("{}", str);
 	ch
 }
 
-fn englishScore(str: &str) -> i64 {
-	println!("{}", str);
-	0
+fn englishScore(s: &str) -> i64 {
+	let begin = 'a' as u32;
+	let end = 'z' as u32;
+	let len = (end - begin + 1) as usize;
+	let mut charCount = Vec::with_capacity(len);
+	for i in 0..len {charCount.push(0);}
+
+	for c in s.chars().filter(|c| c.is_alphabetic()) {
+		let lower = c.to_lowercase().next().unwrap();
+		let index = ((lower as u32) - begin) as usize;
+		charCount[index] += 1;
+	}
+
+	let total: i64 = charCount.iter().fold(0, |acc, &item| acc + item);
+	let freqs = charCount.iter().map(|&x| (x as f64) / (total as f64));
+
+	let score: f64 = freqs.zip(freqVals.iter())
+												.map(|(x, y)| (num::pow(x - y, 2)))
+												.fold(0.0, |acc, item| acc + item).sqrt();
+	(score * 100.0) as i64 
 }
 
 // english letter frequencies
@@ -55,10 +76,8 @@ fn resultToOpt<T, E>(r: Result<T, E>) -> Option<T> {
 fn main() {
 	println!("matasano crypto challenges...");
 	let i = (1..10).next();
-	//singleCharXOR("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
-
+	let c = singleCharXOR("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
 	let s = "Cooking MC's like a pound of bacon";
-	let cs = s.chars();
 
 	//let v = Vec::<char>::from_iter(cs);
 	//println!("{}", v);
