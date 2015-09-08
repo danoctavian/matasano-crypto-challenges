@@ -1,0 +1,8 @@
+[package]
+
+name = "matasano-crypto"
+version = "0.0.1"
+authors = [ "Dan Octavian <danoctavian91@gmail.com>" ]
+
+[dependencies]
+rustc-serialize = "0.3"
