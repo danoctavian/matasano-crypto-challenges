@@ -23,7 +23,7 @@ fn fixedXOR(x: &[u8], y: &[u8]) -> Vec<u8> {
 }
 
 /// S1;C3
-fn singleCharXOR(hexStr: &str) -> u8 {
+fn singleCharXOR(hexStr: &str) -> (u8, String) {
 	let bs = hexStr.from_hex().unwrap();
 	let len = bs.len();
 	let mut secret = Vec::with_capacity(len);
@@ -33,12 +33,11 @@ fn singleCharXOR(hexStr: &str) -> u8 {
 		for i in 0..len {secret[i] = c;}
 		let plain = fixedXOR(&bs, &secret);
 
-		str::from_utf8(&plain).map(|str| (englishScore(str), c, str.to_string().clone()))
+		str::from_utf8(&plain).map(|str| (englishScore(str), c, str.to_string()))
 	}).filter_map(resultToOpt)
 		.max().unwrap();
 
-	println!("{}", str);
-	ch
+	(ch, str)
 }
 
 fn englishScore(s: &str) -> i64 {
@@ -76,8 +75,6 @@ fn resultToOpt<T, E>(r: Result<T, E>) -> Option<T> {
 fn main() {
 	println!("matasano crypto challenges...");
 	let i = (1..10).next();
-	let c = singleCharXOR("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
-	let s = "Cooking MC's like a pound of bacon";
 
 	//let v = Vec::<char>::from_iter(cs);
 	//println!("{}", v);
@@ -99,4 +96,8 @@ fn testFixedXOR() {
 	assert_eq!(actual, expected);
 }
 
-// "Cooking MC's like a pound of bacon"
+#[test]
+fn testFindKey() {
+	let (k, str) = singleCharXOR("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736");
+	assert_eq!(str, "Cooking MC's like a pound of bacon");
+}
