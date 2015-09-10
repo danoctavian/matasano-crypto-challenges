@@ -7,3 +7,4 @@ authors = [ "Dan Octavian <danoctavian91@gmail.com>" ]
 [dependencies]
 rustc-serialize = "0.3"
 num = "*"
+openssl = "*"
